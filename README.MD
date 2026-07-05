@@ -1,59 +1,39 @@
 # WindowOpacity
 
-English | [中文](#中文)
+English | [中文](README.zh-CN.MD)
 
-A small Windows utility for changing the opacity of the current active window.
+A lightweight Windows utility for adjusting window opacity with keyboard shortcuts. It runs on demand with no visible window, no tray icon, no background process, and no startup entry. It is mainly intended for **PowerToys Keyboard Manager**, but it can also be run manually.
 
-Designed to work with **Microsoft PowerToys Keyboard Manager**, but should work just fine with any other program supporting running exe.
+## Files
 
-## Features
-
-* Adjust opacity of the active foreground window
-* Make a window more transparent or more opaque
-* Set a fixed opacity value
-* Supports opacity range `0` to `255`
-* No background process
-* No AutoHotkey required
-* Uses native Windows APIs
-
-## Opacity Values
-
-```text
-0   = fully transparent
-255 = fully opaque
-```
+| File | Description |
+| --- | --- |
+| `WindowOpacity.exe` | Recommended version. Starts quickly and works well with shortcuts. |
+| `WindowOpacity.cs` | C# source code. If you do not trust the prebuilt exe, build it yourself from this file. |
+| `Set-WindowOpacity.ps1` | PowerShell version. Easier to inspect, but much slower because it starts PowerShell and loads embedded C# each time. |
 
 ## Usage
 
 ```powershell
-WindowOpacity.exe fg more-transparent 10
-WindowOpacity.exe fg more-opaque 10
-WindowOpacity.exe fg set 150
-WindowOpacity.exe fg set 255
+.\WindowOpacity.exe fg more-transparent 10
+.\WindowOpacity.exe fg more-opaque 10
+.\WindowOpacity.exe fg set 150
+.\WindowOpacity.exe mouse set 180
 ```
 
-## Arguments
+Argument format:
 
 ```text
 WindowOpacity.exe <target> <action> <value>
 ```
 
-### Target
+| Argument | Values | Description |
+| --- | --- | --- |
+| `target` | `fg`, `mouse` | Current foreground window, or the window under the mouse pointer. |
+| `action` | `more-transparent`, `more-opaque`, `set` | Make the window more transparent, more opaque, or set alpha directly. |
+| `value` | Number | For `set`, this is the target alpha. For `more-*`, this is the step size. Alpha range is `0` - `255`: `0` is fully transparent, `255` is fully opaque. |
 
-| Target  | Description                      |
-| ------- | -------------------------------- |
-| `fg`    | Current active foreground window |
-| `mouse` | Window under the mouse pointer   |
-
-### Action
-
-| Action             | Description                |
-| ------------------ | -------------------------- |
-| `more-transparent` | Decrease opacity alpha     |
-| `more-opaque`      | Increase opacity alpha     |
-| `set`              | Set opacity alpha directly |
-
-## PowerToys Setup
+## PowerToys Shortcut
 
 Open:
 
@@ -63,12 +43,12 @@ PowerToys -> Keyboard Manager -> Remap a shortcut
 
 Recommended mappings:
 
-| Shortcut         | App                 | Arguments                |
-| ---------------- | ------------------- | ------------------------ |
+| Shortcut | App | Arguments |
+| --- | --- | --- |
 | `Ctrl + Alt + -` | `WindowOpacity.exe` | `fg more-transparent 10` |
-| `Ctrl + Alt + =` | `WindowOpacity.exe` | `fg more-opaque 10`      |
+| `Ctrl + Alt + =` | `WindowOpacity.exe` | `fg more-opaque 10` |
 
-Set:
+Other options:
 
 ```text
 Action: Start App
@@ -76,11 +56,23 @@ Visibility: Hidden
 If running: Start another instance
 ```
 
-## Build
+## Build It Yourself
 
-### Debug build
+If you do not trust the included `WindowOpacity.exe`, compile it from `WindowOpacity.cs` in this directory.
 
-Shows console output.
+Silent build, recommended for PowerToys:
+
+```powershell
+& "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
+  /nologo `
+  /target:winexe `
+  /optimize+ `
+  /platform:x64 `
+  /out:"WindowOpacity.exe" `
+  "WindowOpacity.cs"
+```
+
+Debug build, with console output:
 
 ```powershell
 & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
@@ -92,147 +84,20 @@ Shows console output.
   "WindowOpacity.cs"
 ```
 
-### Silent build
+## PowerShell Version
 
-Recommended for PowerToys.
+You can also skip the exe and run the script directly:
 
 ```powershell
-& "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
-  /nologo `
-  /target:winexe `
-  /optimize+ `
-  /platform:x64 `
-  /out:"WindowOpacity.exe" `
-  "WindowOpacity.cs"
+powershell.exe -NoProfile -File .\Set-WindowOpacity.ps1 -Action more-transparent -Step 25
+powershell.exe -NoProfile -File .\Set-WindowOpacity.ps1 -Action more-opaque -Step 25
 ```
+
+This version is easier to inspect, but it is not ideal for frequent shortcuts: every run starts PowerShell and loads embedded C# types, so the response is much slower than the exe.
 
 ## Notes
 
-The tool applies the `WS_EX_LAYERED` window style and updates the window alpha value using native Windows APIs.
-
-When opacity is set back to `255`, the layered style is removed.
-
-Some elevated or protected windows may require matching administrator privileges.
-
-## License
-
-MIT
-
----
-
-# 中文
-
-一个用于调整当前活动窗口透明度的小型 Windows 工具。
-
-为 **Microsoft PowerToys Keyboard Manager** 设计，但可以适用于任何支持exe的软件。
-
-## 功能
-
-* 调整当前活动窗口的透明度
-* 让窗口更透明或更不透明
-* 支持直接设置固定透明度
-* 支持透明度范围 `0` 到 `255`
-* 无后台常驻进程
-* 不需要 AutoHotkey
-* 使用 Windows 原生 API
-
-## 透明度数值
-
-```text
-0   = 完全透明
-255 = 完全不透明
-```
-
-## 使用方式
-
-```powershell
-WindowOpacity.exe fg more-transparent 10
-WindowOpacity.exe fg more-opaque 10
-WindowOpacity.exe fg set 150
-WindowOpacity.exe fg set 255
-```
-
-## 参数
-
-```text
-WindowOpacity.exe <目标> <操作> <数值>
-```
-
-### 目标
-
-| 目标      | 说明        |
-| ------- | --------- |
-| `fg`    | 当前活动前台窗口  |
-| `mouse` | 鼠标指针下方的窗口 |
-
-### 操作
-
-| 操作                 | 说明               |
-| ------------------ | ---------------- |
-| `more-transparent` | 降低 alpha，让窗口更透明  |
-| `more-opaque`      | 提高 alpha，让窗口更不透明 |
-| `set`              | 直接设置 alpha 值     |
-
-## PowerToys 设置
-
-打开：
-
-```text
-PowerToys -> Keyboard Manager -> Remap a shortcut
-```
-
-推荐映射：
-
-| 快捷键              | App                 | Arguments                |
-| ---------------- | ------------------- | ------------------------ |
-| `Ctrl + Alt + -` | `WindowOpacity.exe` | `fg more-transparent 10` |
-| `Ctrl + Alt + =` | `WindowOpacity.exe` | `fg more-opaque 10`      |
-
-设置：
-
-```text
-Action: Start App
-Visibility: Hidden
-If running: Start another instance
-```
-
-## 编译
-
-### 调试版
-
-会显示控制台输出。
-
-```powershell
-& "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
-  /nologo `
-  /target:exe `
-  /optimize+ `
-  /platform:x64 `
-  /out:"WindowOpacity.exe" `
-  "WindowOpacity.cs"
-```
-
-### 静默版
-
-推荐给 PowerToys 使用。
-
-```powershell
-& "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" `
-  /nologo `
-  /target:winexe `
-  /optimize+ `
-  /platform:x64 `
-  /out:"WindowOpacity.exe" `
-  "WindowOpacity.cs"
-```
-
-## 注意事项
-
-本工具通过添加 `WS_EX_LAYERED` 窗口样式，并使用 Windows 原生 API 修改窗口 alpha 值。
-
-当透明度恢复到 `255` 时，会移除 layered 样式，让窗口恢复普通不透明状态。
-
-部分管理员权限窗口或受保护窗口可能需要同等管理员权限才能修改。
+This tool uses native Windows APIs to change the window alpha value. When alpha is restored to `255`, the layered window style is removed. Some elevated or protected windows may require running the tool with matching privileges.
 
 ## License
 
